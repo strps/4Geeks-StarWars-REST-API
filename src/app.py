@@ -49,6 +49,7 @@ def get_character(id):
 
 @app.route('/planets')
 def get_planets():
+    limit = request.args.get("limit", 3 ,type=int)
     planets = Planet.query.all()
     response_body = list(map(lambda p: p.serialize(), planets))
     return jsonify(response_body)
