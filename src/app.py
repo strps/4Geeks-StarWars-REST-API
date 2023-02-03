@@ -8,8 +8,8 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Character, Planet
-#from models import Person
+from models import db, User, Character, Planet, Species, Vehicles, Starships, Films
+
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -36,6 +36,8 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+################ Characters Routes ################
+
 @app.route('/characters')
 def get_characters():
     characters = Character.query.all()
@@ -47,17 +49,100 @@ def get_character(id):
     character = Character.query.get(id).serialize()
     return jsonify(character)
 
+
+################ Planets Routes ################
+
 @app.route('/planets')
 def get_planets():
-    limit = request.args.get("limit", 3 ,type=int)
-    planets = Planet.query.all()
+    limit = request.args.get("limit", 10 ,type=int)
+    offset = request.args.get("offset", 0 ,type=int)
+
+    planets = Planet.query.offset(offset).limit(limit).all()
     response_body = list(map(lambda p: p.serialize(), planets))
     return jsonify(response_body)
 
 @app.route('/planets/<int:id>')
 def get_planet(id):
     planet = Planet.query.get(id).serialize()
-    return jsonify(planet)
+    if planet is None:
+        return jsonify({"msg":"planet not found"}), 404
+    return jsonify(planet), 200
+
+@app.route("/planets", methods=['POST'])
+def create_planet():
+    name = request.json.get('name')
+    gravity = request.json.get('gravity')
+    created_by_id = request.json.get("created_by_id")
+    new_planet = Planet(name = name, gravity = gravity, created_by_id = created_by_id)
+    db.session.add(new_planet)
+    db.session.commit()
+    return "ok" , 201
+
+@app.route("/planets/<int:id>", methods = ['PATCH'])
+def update_planet(id):
+    planet = Planet.query.get(id)
+    if planet is None:
+        return jsonify({"msg":"planet not found"}), 404
+    if request.json.get('name') is not None:
+        planet.name = request.json.get('name')
+    if request.json.get('gravity') is not None:
+        planet.gravity = request.json.get("gravity")
+    if request.json.get('grcreated_by_idavity') is not None:
+        planet.created_by_id = request.json.get("created_by_id")
+
+    db.session.add(planet)
+    db.session.commit()
+
+    return jsonify(planet.serialize()), 200
+
+@app.route('/planets/<int:id>', methods=['DELETE'])
+def delete_planet(id):
+    planet = Planet.query.get(id)
+    if planet is None:
+        return jsonify({"msg":"planet not found"}), 404
+    db.session.delete(planet)
+    db.session.commit()
+    return jsonify({"msg":"Planet deleted"})
+
+################ Films Routes ################
+
+@app.route('/films/<int:film_id>', methods=['GET'])
+def get_film(film_id):
+    film = Films.query.get(film_id)
+    if not film:
+        return jsonify({'message': 'Film not found'}), 404
+    return jsonify(film.serialize())
+
+################ Starships Routes ################
+
+@app.route('/starships/<int:id>', methods=['GET'])
+def get_starship_by_id(id):
+    starship = Starships.query.get(id)
+    if not starship:
+        return jsonify({'message': 'Starship not found'}), 404
+    return jsonify(starship.serialize())
+
+################ Vehicles Routes ################
+
+@app.route('/vehicles/<int:id>', methods=['GET'])
+def get_vehicle(id):
+    vehicle = Vehicles.query.get(id)
+    if not vehicle:
+        return jsonify({'message': 'Vehicle not found'}), 404
+    return jsonify(vehicle.serialize())
+
+
+
+################ Species Routes ################
+
+@app.route('/species/<int:id>', methods=['GET'])
+def get_species(id):
+    species = Species.query.get(id)
+    if not species:
+        return jsonify({'message': 'Species not found'}), 404
+    return jsonify(species.serialize())
+
+################ Users Routes ################
 
 @app.route('/users')
 def get_users():
@@ -67,19 +152,28 @@ def get_users():
 
 @app.route("/users/favorites")
 def get_favorites():
-    return 'Favorites'
+    return 'Favorites', 200
+
+@app.route("/favorite/planet/<int:planet_id>", methods= ["POST"])
+def add_favorite_planet():
+    '''Add favorite planet'''
+
+@app.route("/favorite/character/<int:planet_id>", methods= ["POST"])
+def add_favorite_character():
+    '''Add Favorite Character'''
+
+@app.route("/favorite/planet/<int:planet_id>", methods= ["DELETE"])
+def delete_favorite_planet():
+    '''Delete Favorite Planet'''
+
+@app.route("/favorite/character/<int:planet_id>", methods= ["DELETE"])
+def delete_favorite_character():
+    '''Delete Favorite Character'''
+    
 
 
 
 
-
-# @app.route('/favorite/planet/<int:planet_id>', methods=['POST'])
-
-# @app.route('/favorite/characters/<int:characters_id>', methods=['POST'])
-
-# @app.route('/favorite/planet/<int:planet_id>', methods=['DELETE'])
-
-# @app.route('/favorite/characters/<int:characters_id>', methods=['DELETE'])
 
 
 
