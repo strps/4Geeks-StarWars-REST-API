@@ -47,6 +47,8 @@ def get_characters():
 @app.route('/characters/<int:id>')
 def get_character(id):
     character = Character.query.get(id).serialize()
+    if character is None:
+        return jsonify({"msg":"character not found"}), 404
     return jsonify(character)
 
 
@@ -110,8 +112,16 @@ def delete_planet(id):
 def get_film(film_id):
     film = Films.query.get(film_id)
     if not film:
-        return jsonify({'message': 'Film not found'}), 404
+        return jsonify({'msg': 'Film not found'}), 404
     return jsonify(film.serialize())
+
+@app.route('/films')
+def get_films():
+    limit = request.args.get("limit", 10 ,type=int)
+    offset = request.args.get("offset", 0 ,type=int)
+
+    films = Films.query.offset(offset).limit(limit).all()
+    return jsonify([film.serialize() for film in films])
 
 ################ Starships Routes ################
 
@@ -119,8 +129,16 @@ def get_film(film_id):
 def get_starship_by_id(id):
     starship = Starships.query.get(id)
     if not starship:
-        return jsonify({'message': 'Starship not found'}), 404
+        return jsonify({'msg': 'Starship not found'}), 404
     return jsonify(starship.serialize())
+
+@app.route('/starships')
+def get_starships():
+    limit = request.args.get("limit", 10 ,type=int)
+    offset = request.args.get("offset", 0 ,type=int)
+
+    starships = Starships.query.offset(offset).limit(limit).all()
+    return jsonify([starship.serialize() for starship in starships])
 
 ################ Vehicles Routes ################
 
@@ -128,19 +146,35 @@ def get_starship_by_id(id):
 def get_vehicle(id):
     vehicle = Vehicles.query.get(id)
     if not vehicle:
-        return jsonify({'message': 'Vehicle not found'}), 404
+        return jsonify({'msg': 'Vehicle not found'}), 404
     return jsonify(vehicle.serialize())
+
+@app.route('/vehicles')
+def get_vehicles():
+    limit = request.args.get("limit", 10 ,type=int)
+    offset = request.args.get("offset", 0 ,type=int)
+
+    vehicles = Vehicles.query.offset(offset).limit(limit).all()
+    return jsonify([vehicle.serialize() for vehicle in vehicles])
 
 
 
 ################ Species Routes ################
 
 @app.route('/species/<int:id>', methods=['GET'])
-def get_species(id):
+def get_specie(id):
     species = Species.query.get(id)
     if not species:
-        return jsonify({'message': 'Species not found'}), 404
+        return jsonify({'msg': 'Species not found'}), 404
     return jsonify(species.serialize())
+
+@app.route('/species')
+def get_species():
+    limit = request.args.get("limit", 10 ,type=int)
+    offset = request.args.get("offset", 0 ,type=int)
+
+    species = Species.query.offset(offset).limit(limit).all()
+    return jsonify([species.serialize() for species in species])
 
 ################ Users Routes ################
 
